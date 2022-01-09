@@ -8,6 +8,9 @@ class LabelledDatapoint:
   def get_feature_values(self) -> List[bool]:
     return self.feature_values
 
+  def get_feature_value(self, i: int) -> bool:
+    return self.feature_values[i]
+
   def get_label(self) -> str:
     return self.label
 
@@ -20,6 +23,12 @@ class LabelledDataSet:
   def __init__(self, feature_names: List[str], datapoints: List[LabelledDatapoint]) -> None:
     self.feature_names = feature_names
     self.datapoints = datapoints
+
+  def filter(self, filter_fn):
+    return LabelledDataSet(self.feature_names, list(filter(filter_fn, self.datapoints)))
+
+  def get_datapoints(self) -> List[LabelledDatapoint]:
+    return self.datapoints
 
   def get_feature_names(self) -> List[str]:
     return self.feature_names
@@ -58,13 +67,26 @@ def parse_course_rating_data_set(filename: str) -> LabelledDataSet:
   return LabelledDataSet(features, datapoints)
 
 
+def print_labelled_dataset(ds: LabelledDataSet):
+  print(ds.get_feature_names())
+  for i in range(ds.get_size()):
+    print(" {0:>2} |".format(ds.get_label(i)), end="")
+    fv_display = map(lambda fv: '1' if fv == True else '0', ds.get_feature_values(i))
+    print(" " + ' '.join(fv_display))
+
+
 if __name__ == '__main__':
   dataset1 = parse_course_rating_data_set("ciml-course-rating-data-set.txt")
   # print the ingested dataset
-  print(dataset1.get_feature_names())
-  for i in range(dataset1.get_size()):
-    print(" {0:>2} |".format(dataset1.get_label(i)), end="")
-    fv_display = map(lambda fv: '1' if fv == True else '0', dataset1.get_feature_values(i))
-    print(" " + ' '.join(fv_display))
+  print_labelled_dataset(dataset1)
+
+  # compute like/dislike histograms along each feature
+  filter_f1_y = dataset1.filter(lambda dp: dp.get_feature_value(0) == True)
+  filter_f1_n = dataset1.filter(lambda dp: dp.get_feature_value(0) == False)
+
+  print("")
+  print_labelled_dataset(filter_f1_y)
+  print("")
+  print_labelled_dataset(filter_f1_n)
 
 
