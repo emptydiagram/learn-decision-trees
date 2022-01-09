@@ -1,31 +1,40 @@
 from typing import List
 
+class LabelledDatapoint:
+  def __init__(self, feature_values: List[bool], label: str):
+    self.feature_values = feature_values
+    self.label = label
+
+  def get_feature_values(self) -> List[bool]:
+    return self.feature_values
+
+  def get_label(self) -> str:
+    return self.label
+
 # n datapoints
 # k features
 # for each of the n datapoints:
 #   - k boolean values, the feature values
 #   - 1 label
 class LabelledDataSet:
-  def __init__(self, feature_names: List[str], feature_values: List[List[bool]], labels: List[str]) -> None:
+  def __init__(self, feature_names: List[str], datapoints: List[LabelledDatapoint]) -> None:
     self.feature_names = feature_names
-    self.feature_values = feature_values
-    self.labels = labels
+    self.datapoints = datapoints
 
   def get_feature_names(self) -> List[str]:
     return self.feature_names
 
   def get_feature_values(self, i: int) -> List[bool]:
-    return self.feature_values[i]
+    return self.datapoints[i].get_feature_values()
 
   def get_feature_value(self, i: int, j: int) -> bool:
-    return self.feature_values[i][j]
+    return self.get_feature_values(i)[j]
 
   def get_label(self, i: int) -> str:
-    return self.labels[i]
+    return self.datapoints[i].get_label()
 
   def get_size(self):
-    return len(self.feature_values)
-
+    return len(self.datapoints)
 
 def yn_to_bool(x: str) -> bool:
   return True if x.lower() == 'y' else False
@@ -40,15 +49,13 @@ def parse_course_rating_data_set(filename: str) -> LabelledDataSet:
     # TODO: throw error
     pass
 
-  labels = []
-  fvs = []
+  datapoints = []
   for line in f.readlines():
     values = line.rstrip().split(' ')
-    labels.append(values[0])
     parsed_feature_values = list(map(yn_to_bool, values[1:]))
-    fvs.append(parsed_feature_values)
+    datapoints.append(LabelledDatapoint(parsed_feature_values, values[0]))
 
-  return LabelledDataSet(features, fvs, labels)
+  return LabelledDataSet(features, datapoints)
 
 
 if __name__ == '__main__':
