@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 class LabelledDatapoint:
   def __init__(self, feature_values: List[bool], label: str):
@@ -32,6 +32,12 @@ class LabelledDataSet:
     labels = map(lambda dp: dp.get_label(), self.datapoints)
     return sum(1 for _ in filter(label_predicate, labels))
 
+  def get_feature_value_hist(self, i: int, feat_val: bool, label_predicate) -> Tuple[int, int]:
+    filtered = self.filter(lambda dp: dp.get_feature_value(i) == feat_val)
+    amt_liked = filtered.count_label_predicate(label_predicate)
+    amt_disliked = filtered.size() - amt_liked
+    return (amt_liked, amt_disliked)
+
   def get_datapoints(self) -> List[LabelledDatapoint]:
     return self.datapoints
 
@@ -50,6 +56,18 @@ class LabelledDataSet:
   def size(self):
     return len(self.datapoints)
 
+
+class BinaryDecisionTreeNode:
+  def __init__(self, yes=None, no=None) -> None:
+    self.yes = yes
+    self.no = no
+
+  def set_yes(self, yes: 'BinaryDecisionTreeNode'):
+    self.yes = yes
+
+
+
+### functions ###
 def yn_to_bool(x: str) -> bool:
   return True if x.lower() == 'y' else False
 
@@ -85,15 +103,11 @@ if __name__ == '__main__':
   # print the ingested dataset
   print_labelled_dataset(dataset1)
 
+  # number of datapoints whose label is in {0, +1, +2}
   gte0 = lambda l: l == '0' or l == '+1' or l == '+2'
 
   def print_feat_val_hist(i: int, feat_val: bool) -> None:
-    filtered = dataset1.filter(lambda dp: dp.get_feature_value(i) == feat_val)
-    total_filtered = filtered.size()
-    # number of datapoints whose label is in {0, +1, +2}
-    amt_liked = filtered.count_label_predicate(gte0)
-    # count_f1_y_dislike = filter_f1_y.count_label_predicate(lt0)
-    amt_disliked = total_filtered - amt_liked
+    amt_liked, amt_disliked = dataset1.get_feature_value_hist(i, feat_val, gte0)
     print(f"= {'y' if feat_val else 'n'} [{amt_liked}, {amt_disliked}]")
 
   # compute like/dislike histograms along each feature
